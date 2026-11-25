@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffd84a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Dneska vybírá</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#ffd84a;--ink:#2b1b5a;--card:#fff;--ch:#ff5c8a;--be:#14b8c4;--btn:#6c3df4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;font-weight:500;overflow:hidden;user-select:none}
+.screen{display:none;height:100%;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:16px;text-align:center}
+.screen.on{display:flex}
+h1{font-size:clamp(2rem,9vw,2.8rem);margin:0;font-weight:700;line-height:1.05}
+.big{width:min(70vw,34vh,300px);aspect-ratio:1;border:0;border-radius:50%;background:var(--btn);color:#fff;font:700 clamp(1.5rem,7vw,2rem)/1.1 'Fredoka',sans-serif;box-shadow:0 10px 0 #3f1fb0;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.big:active{transform:translateY(8px);box-shadow:0 2px 0 #3f1fb0}
+.cal-btn{width:68px;height:68px;border:0;border-radius:22px;background:var(--card);color:var(--ink);box-shadow:0 6px 0 rgba(43,27,90,.35);cursor:pointer;display:grid;place-items:center}
+.cal-btn:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(43,27,90,.35)}
+.cal-btn svg{width:38px;height:38px}
+.logos{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.logo{width:76px;height:54px;border-radius:14px;background:#fff;display:grid;place-items:center;box-shadow:0 4px 0 rgba(43,27,90,.3)}
+.logo svg{width:60px;height:40px}
+.name{font-size:clamp(3.2rem,17vw,6rem);font-weight:700;margin:0;line-height:1}
+#result{color:#fff}
+#result.ch{background:var(--ch)}#result.be{background:var(--be)}
+.sub{font-size:1.4rem;margin:0}
+.back{border:0;border-radius:18px;background:#fff;color:var(--ink);font:700 1.2rem 'Fredoka',sans-serif;padding:14px 28px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+#cal{justify-content:flex-start;gap:12px;padding-top:16px}
+.bar{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:420px}
+.bar button{border:0;border-radius:14px;background:var(--card);color:var(--ink);font:700 1.4rem 'Fredoka',sans-serif;width:48px;height:48px;cursor:pointer}
+.bar h2{margin:0;font-size:1.4rem;text-transform:capitalize}
+.legend{display:flex;gap:16px;font-size:1.05rem}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;width:100%;max-width:420px}
+.dow{font-size:.8rem;opacity:.75}
+.d{aspect-ratio:1;border-radius:12px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.8rem;line-height:1.05}
+.d b{font-size:1.15rem}
+.d.ch{background:var(--ch)}.d.be{background:var(--be)}
+.d.today{outline:4px solid var(--ink);outline-offset:1px}
+.d.empty{background:none}
+.hint{font-size:.9rem;opacity:.8;margin:0}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="yt" viewBox="0 0 64 46"><rect x="2" y="3" width="60" height="40" rx="12" fill="#f00"/><path d="M26 14v18l16-9z" fill="#fff"/></symbol>
+  <symbol id="nf" viewBox="0 0 64 46"><rect x="17" y="4" width="9" height="38" fill="#b20710"/><rect x="38" y="4" width="9" height="38" fill="#b20710"/><path d="M17 4h9l21 38h-9z" fill="#e50914"/></symbol>
+  <symbol id="op" viewBox="0 0 64 46"><rect x="2" y="6" width="60" height="34" rx="11" fill="#1a1a2e"/><circle cx="17" cy="23" r="7" fill="#00d0a0"/><path d="M15 19.5v7l6-3.5z" fill="#1a1a2e"/><text x="27" y="27" font-family="Arial,sans-serif" font-size="11" font-weight="700" fill="#fff">one</text></symbol>
+  <symbol id="dp" viewBox="0 0 64 46"><rect x="2" y="6" width="60" height="34" rx="11" fill="#0b1f6b"/><text x="32" y="28" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-style="italic" font-weight="700" fill="#fff">Disney+</text></symbol>
+</svg>
+
+<section class="screen on" id="home">
+  <h1>Dneska<br>vybírá</h1>
+  <button class="big" id="go">Kdo to je?</button>
+  <button class="cal-btn" id="open-cal" aria-label="Kalendář">
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="10" width="36" height="32" rx="6"/><path d="M6 20h36M16 5v9M32 5v9"/><circle cx="16" cy="29" r="2.2" fill="currentColor"/><circle cx="24" cy="29" r="2.2" fill="currentColor"/><circle cx="32" cy="29" r="2.2" fill="currentColor"/></svg>
+  </button>
+  <div class="logos">
+    <div class="logo"><svg><use href="#yt"/></svg></div>
+    <div class="logo"><svg><use href="#nf"/></svg></div>
+    <div class="logo"><svg><use href="#op"/></svg></div>
+    <div class="logo"><svg><use href="#dp"/></svg></div>
+  </div>
+</section>
+
+<section class="screen" id="result">
+  <p class="sub">Dneska vybírá</p>
+  <p class="name" id="who"></p>
+  <div class="logos">
+    <div class="logo"><svg><use href="#yt"/></svg></div>
+    <div class="logo"><svg><use href="#nf"/></svg></div>
+    <div class="logo"><svg><use href="#op"/></svg></div>
+    <div class="logo"><svg><use href="#dp"/></svg></div>
+  </div>
+  <button class="back" id="back1">Zpět</button>
+</section>
+
+<section class="screen" id="cal">
+  <div class="bar">
+    <button id="prev" aria-label="Předchozí měsíc">‹</button>
+    <h2 id="title"></h2>
+    <button id="next" aria-label="Další měsíc">›</button>
+  </div>
+  <div class="legend"><span><i style="background:var(--ch)"></i>Charlottka</span><span><i style="background:var(--be)"></i>Beníček</span></div>
+  <div class="grid" id="grid"></div>
+  <p class="hint">Ch = Charlottka, B = Beníček</p>
+  <button class="back" id="back2">Zpět</button>
+</section>
+
+<script>
+// Den, kdy vybírá Beníček (od něj se jména střídají). Formát: rok, měsíc (0 = leden), den.
+var ANCHOR = Date.UTC(2026, 10, 24);
+var ANCHOR_IS_BENICEK = true;
+var DAY = 86400000;
+function who(y, m, d) {
+  var n = Math.round((Date.UTC(y, m, d) - ANCHOR) / DAY);
+  var even = (((n % 2) + 2) % 2 === 0);
+  return (even === ANCHOR_IS_BENICEK) ? 'be' : 'ch';
+}
+var NAMES = { ch: 'Charlottka', be: 'Beníček' };
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('on'); });
+  document.getElementById(id).classList.add('on');
+}
+var now = new Date();
+var view = { y: now.getFullYear(), m: now.getMonth() };
+function renderCal() {
+  var first = new Date(view.y, view.m, 1);
+  var days = new Date(view.y, view.m + 1, 0).getDate();
+  var lead = (first.getDay() + 6) % 7;
+  var t = new Date();
+  document.getElementById('title').textContent = first.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+  var h = ['Po','Út','St','Čt','Pá','So','Ne'].map(function (x) { return '<div class="dow">' + x + '</div>'; }).join('');
+  for (var i = 0; i < lead; i++) h += '<div class="d empty"></div>';
+  for (var d = 1; d <= days; d++) {
+    var k = who(view.y, view.m, d);
+    var isToday = d === t.getDate() && view.m === t.getMonth() && view.y === t.getFullYear();
+    h += '<div class="d ' + k + (isToday ? ' today' : '') + '"><b>' + d + '</b>' + (k === 'ch' ? 'Ch' : 'B') + '</div>';
+  }
+  document.getElementById('grid').innerHTML = h;
+}
+document.getElementById('go').onclick = function () {
+  var t = new Date();
+  var k = who(t.getFullYear(), t.getMonth(), t.getDate());
+  var r = document.getElementById('result');
+  document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('on'); });
+  r.className = 'screen on ' + k;
+  document.getElementById('who').textContent = NAMES[k];
+};
+document.getElementById('open-cal').onclick = function () {
+  var t = new Date(); view = { y: t.getFullYear(), m: t.getMonth() };
+  renderCal(); show('cal');
+};
+document.getElementById('prev').onclick = function () { view.m--; if (view.m < 0) { view.m = 11; view.y--; } renderCal(); };
+document.getElementById('next').onclick = function () { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderCal(); };
+document.getElementById('back1').onclick = function () { show('home'); };
+document.getElementById('back2').onclick = function () { show('home'); };
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
